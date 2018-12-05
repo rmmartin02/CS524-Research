@@ -5,9 +5,12 @@ from PIL import Image
 import requests
 import time
 import datetime
+import sys
+
+baseDir = ''
 
 def downloadImage(url):
-    file_name = '/scratch/rmmartin/images/{}'.format(url.split('/')[-1])
+    file_name = '{}/{}'.format(baseDir,url.split('/')[-1])
     #print(file_name)
     if os.path.exists(file_name):
         try:
@@ -30,9 +33,9 @@ def downloadImage(url):
             time.sleep(.1)
             print('Retrying download: {}'.format(file_name))
 
-def loader():
+def loader(file):
     url_list = []
-    with open('images.txt','r') as f:
+    with open(file,'r') as f:
         url_list = f.readlines()
     for i in range(len(url_list)):
         url_list[i] = url_list[i].rstrip()
@@ -47,4 +50,6 @@ def loader():
 # arg1 : data_file.csv
 # arg2 : output_dir
 if __name__ == '__main__':
-    loader()
+    baseDir = sys.argv[1]
+    urlFile = sys.argv[2]
+    loader(urlFile)
