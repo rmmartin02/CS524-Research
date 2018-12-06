@@ -4,11 +4,13 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <future>
 using namespace cv;
 
 int tol = 60;
 
 Vec3b interPolat(Mat image, int x, int y){
+	//printf("Called interPolat %d %d\n", x, y);
 	Vec3b color = image.at<Vec3b>(Point(x,y));
 	if(x<(image.cols/2)){
 		//search right
@@ -51,32 +53,32 @@ Vec3b interPolat(Mat image, int x, int y){
 	return color;
 }
 
-void filterMean(int x, int y, Mat image, Mat meanImage, int num){
-	// get pixel
-	Vec3b color = image.at<Vec3b>(Point(x,y));
+void filterMean(Vec3b color, Vec3b meanColor){
+	//Vec3b color = image.at<Vec3b>(Point(x,y));
 
+/*
 	if ((color[2]-color[0])>tol || (color[2]-color[0])<-tol){
 		color = interPolat(image,x,y);
 	}
-
+*/
 	// set pixel
 	//fixed.at<Vec3b>(Point(x,y)) = color;
-	if (num>1){
-		Vec3b meanColor = meanImage.at<Vec3b>(Point(x,y));
+	//if (num>1){
+		//Vec3b meanColor = meanImage.at<Vec3b>(Point(x,y));
 		for(int i=0;i<3;i++){
 			meanColor[i] = meanColor[i] + (color[i]-meanColor[i])/num;
 		}
-		meanImage.at<Vec3b>(Point(x,y)) = meanColor;
+		return meanColor;
 		//meanImage = meanImage+(1/i)*(fixed[:,:]-meanImage)
-	}
+	//}
 }
 
 int main( int argc, char** argv )
 {
 	std::string line;
-	std::ifstream myfile ("images.txt");
+	std::ifstream myfile ("cat5.txt");
 	int N = 4; //number of threads
-	std::vector<std::thread> threads;
+	std::thread threads[N];
 	int num = 1;
 	Mat meanImage;
 	if (myfile.is_open()){
@@ -88,22 +90,27 @@ int main( int argc, char** argv )
 			image = imread( line, IMREAD_COLOR );
 			fixed = imread(	line, IMREAD_COLOR );
 			if(!image.data ){
-				printf( " No image data \n " );
+				//printf( " No image data \n " );
 				return -1;
 			}
 			//left, up, width, height
 			//1024x1024
-			image = image(Rect(256,256,512,512));
-			fixed = fixed(Rect(256,256,512,512));
-			for(int y=0;y<image.rows-1;y++){
-				for(int x=0;x<image.cols-1;x++){
-					for(int i = x; i<x+N || i<image.cols-1; i++){
-						threads.push_back(std::thread(filterMean,x,y,image,meanImage,num));
+			if (num>1){
+				image = image(Rect(256,256,512,512));
+				fixed = fixed(Rect(256,256,512,512));
+				for(int y=0;y<image.rows;y++){
+					for(int x=0; x<image.cols/N; x++){
+						for(int i=0; i<N; i++){
+							int val = x+(i*(image.cols/N));
+							Vec3b color = image.at<Vec3b>(Point(val,y));
+							Vec3b meanColor = meanImage.at<Vec3b>(Point(val,y));
+							threads[i]=std::thread(filterMean,color,meanColor);
+						}
+						for(int i = 0; i<N; i++){
+							threads[i].join();
+						}
+						////printf("Threads Joined\n");
 					}
-					for(int i = 0; i<N; i++){
-						threads[i].join();
-					}
-					threads.clear();
 				}
 			}
 			if(num == 1){

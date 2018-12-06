@@ -52,7 +52,7 @@ Vec3b interPolat(Mat image, int x, int y){
 int main( int argc, char** argv )
 {
 	std::string line;
-	std::ifstream myfile ("images.txt");
+	std::ifstream myfile ("cat5.txt");
 	int num = 1;
 	Mat meanImage;
 	if (myfile.is_open()){
