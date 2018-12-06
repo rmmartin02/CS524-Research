@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <chrono>
 using namespace cv;
 
 int tol = 60;
@@ -52,8 +53,9 @@ Vec3b interPolat(Mat image, int x, int y){
 int main( int argc, char** argv )
 {
 	std::string line;
-	std::ifstream myfile ("cat5.txt");
+	std::ifstream myfile ("images.txt");
 	int num = 1;
+	int avgDur = 0;
 	Mat meanImage;
 	if (myfile.is_open()){
 		while ( getline (myfile,line) ){
@@ -69,16 +71,17 @@ int main( int argc, char** argv )
 			}
 			//left, up, width, height
 			//1024x1024
-			image = image(Rect(256,256,512,512));
-			fixed = fixed(Rect(256,256,512,512));
+			//image = image(Rect(256,256,512,512));
+			//fixed = fixed(Rect(256,256,512,512));
+			auto start = std::chrono::high_resolution_clock::now();
 			for(int y=1;y<image.rows-1;y++){
 				for(int x=1;x<image.cols-1;x++){
 					// get pixel
 					Vec3b color = image.at<Vec3b>(Point(x,y));
 					
-					if ((color[2]-color[0])>tol || (color[2]-color[0])<-tol){
-						color = interPolat(image,x,y);
-					}
+					//if ((color[2]-color[0])>tol || (color[2]-color[0])<-tol){
+					//	color = interPolat(image,x,y);
+					//}
 
 					// set pixel
 					//fixed.at<Vec3b>(Point(x,y)) = color;
@@ -92,6 +95,11 @@ int main( int argc, char** argv )
 					}
 				}
 			}
+			auto stop = std::chrono::high_resolution_clock::now();
+			auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start); 
+		    std::cout << "Time taken by function: " << duration.count() << " microseconds\n";
+		    avgDur = avgDur + (duration.count()-avgDur)/num;
+		    std::cout << "Avg Duration: " << avgDur << " microseconds\n";
 			if(num==1){
 				meanImage = fixed;
 			}
@@ -111,3 +119,4 @@ int main( int argc, char** argv )
 	*/
 	return 0;
 }
+//g++ -o FilterAndMean FilterAndMean.cpp `pkg-config opencv --cflags --libs` -std=c++11
