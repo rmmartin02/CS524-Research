@@ -1,0 +1,8 @@
+Machine	Threads	Filter	Size	Avg Time per Image
+janus	4		Yes		1024	28028
+		2		Yes		1024	
+		1		Yes		1024	47994
+
+pepe	4						20800
+		2						25400
+		1						30680
