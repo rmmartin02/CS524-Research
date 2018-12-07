@@ -112,18 +112,20 @@ int main( int argc, char** argv )
 			//fixed = imread(	line, IMREAD_COLOR );
 			//left, up, width, height
 			//1024x1024
-			auto start = std::chrono::high_resolution_clock::now();
+			//auto start = std::chrono::high_resolution_clock::now();
 		    for (int y=0; y<image.rows; y++) { 
 		     	parallel_for_(cv::Range(0, image.cols), Body(y));
 		    }
 		    //namedWindow( line, WINDOW_AUTOSIZE );
 			//imshow( line, meanImage );
 			//waitKey(0);
+			/*
 			auto stop = std::chrono::high_resolution_clock::now();
 			auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start); 
 		    std::cout << "Time taken by function: " << duration.count() << " microseconds\n";
 		    avgDur = avgDur + (duration.count()-avgDur)/num;
 		    std::cout << "Avg Duration: " << avgDur << " microseconds\n";
+		    */
 			num++;
 		}
 		auto end = std::chrono::high_resolution_clock::now();
