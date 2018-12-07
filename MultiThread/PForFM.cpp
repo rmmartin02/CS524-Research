@@ -72,9 +72,9 @@ public:
         	//meanColor = meanColor[i] + (color[i]-meanColor[i])/num;
         	Vec3b color = image.at<Vec3b>(Point(x,y));
         	//printf("before %d\n",color[0]);
-        	if ((color[2]-color[0])>tol || (color[2]-color[0])<-tol){
-				color = interPolat(x,y);
-			}
+        	//if ((color[2]-color[0])>tol || (color[2]-color[0])<-tol){
+			//	color = interPolat(x,y);
+			//}
 			//printf("after %d\n",color[0]);
         	int meanColor = meanImage.at<uchar>(y,x);
         	meanImage.at<uchar>(y,x) = meanColor+(color[0]-meanColor)/num;
@@ -85,6 +85,7 @@ public:
 
 int main( int argc, char** argv )
 {
+	auto begin = std::chrono::high_resolution_clock::now();
 	std::string line;
 	std::ifstream myfile ("images.txt");
 	setNumThreads(atoi(argv[1]));
@@ -92,6 +93,7 @@ int main( int argc, char** argv )
 	int avgDur = 0;
 	//Mat meanImage;
 	if (myfile.is_open()){
+
 		while ( getline (myfile,line) ){
 			std::cout << line << '\n';
 			std::cout << num << '\n';
@@ -124,6 +126,10 @@ int main( int argc, char** argv )
 		    std::cout << "Avg Duration: " << avgDur << " microseconds\n";
 			num++;
 		}
+		auto end = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - begin); 
+		std::cout << "Total Time: " << duration.count() << " microseconds\n";
+
 		myfile.close();
 		namedWindow( line, WINDOW_AUTOSIZE );
 		imwrite("./mean.jpg",meanImage);
