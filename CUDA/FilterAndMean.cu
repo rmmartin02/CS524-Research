@@ -11,7 +11,7 @@ using namespace std;
 
 // Kernel function to add the elements of two arrays
 __global__
-void filter(int n, int S, int C, int tol, float *imgW, float *imgR)
+void filterMean(int n, int S, int C, int tol, float *imgR, float *meanImg, int loop)
 {
   int A = S*S;
   int N = A*C;
@@ -74,9 +74,8 @@ void filter(int n, int S, int C, int tol, float *imgW, float *imgR)
         }
       }
     }
-    imgW[i] = r;
-    imgW[i+A] = g;
-    imgW[i+2*A] = b;
+    float z = meanImg[i];
+    meanImg[i] = z + (r - z)/((float)loop);
   }
 }
 
@@ -90,13 +89,13 @@ int main(void)
 
 
   auto begin = std::chrono::high_resolution_clock::now();
-  float *img, *readImg;
+  float *img, *meanImg;
   Mat imgMat;
-  int avgDur = 0;
+  float avgDur = 0.0f;
 
   // Allocate Unified Memory – accessible from CPU or GPU
   cudaMallocManaged(&img, N*sizeof(float));
-  cudaMallocManaged(&readImg, N*sizeof(float));
+  cudaMallocManaged(&meanImg, N*sizeof(float));
 
   //open images
   std::string line;
@@ -104,8 +103,8 @@ int main(void)
   if (myfile.is_open()){
     int loops = 1;
     while ( getline (myfile,line) ){
-      std::cout << line << '\n';
-      std::cout << loops << '\n';
+      //std::cout << line << '\n';
+      //std::cout << loops << '\n';
       imgMat = imread( line, IMREAD_COLOR );
 
       //initialize arrays to be passed to be passed
@@ -115,57 +114,58 @@ int main(void)
           img[i] = imgMat.at<Vec3b>(Point(x,y))[0];
           img[i+A] = imgMat.at<Vec3b>(Point(x,y))[1];
           img[i+2*A] = imgMat.at<Vec3b>(Point(x,y))[2];
-          readImg[i] = imgMat.at<Vec3b>(Point(x,y))[0];
-          readImg[i+A] = imgMat.at<Vec3b>(Point(x,y))[1];
-          readImg[i+2*A] = imgMat.at<Vec3b>(Point(x,y))[2];
+          if(loops==1){
+           meanImg[i] = 0.0f;
+          }
           i++;
         }
       }
-      printf("%f %f %f",img[N/2],img[N/2+A],img[N/2+A*2]);
+      //printf("%f %f %f",img[N/2],img[N/2+A],img[N/2+A*2]);
 
-      auto start = std::chrono::high_resolution_clock::now();
+      //auto start = std::chrono::high_resolution_clock::now();
 
     	int blockSize = 512;
     	int numBlocks = (N + blockSize - 1) / blockSize;
-    	filter<<<numBlocks, blockSize>>>(N, S, C, tol, img, readImg);
+    	filterMean<<<numBlocks, blockSize>>>(N, S, C, tol, img, meanImg, loops);
 
       // Wait for GPU to finish before accessing on host
       cudaDeviceSynchronize();
 
+      /*
       auto stop = std::chrono::high_resolution_clock::now();
       auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start); 
       std::cout << "Time taken by function: " << duration.count() << " microseconds\n";
       avgDur = avgDur + (duration.count()-avgDur)/loops;
       std::cout << "Avg Duration: " << avgDur << " microseconds\n";
-
-      //Reconstruct Mat
-      i = 0;
-      for(int y = 0; y<imgMat.rows; y++){
-        for(int x = 0; x<imgMat.cols; x++){
-          int c = img[i];
-          //printf("Before: %d %d %d\n",imgMat.at<Vec3b>(Point(x,y))[0],imgMat.at<Vec3b>(Point(x,y))[1],imgMat.at<Vec3b>(Point(x,y))[2]);
-          imgMat.at<Vec3b>(Point(x,y)) = Vec3b(c,c,c);
-          //printf("After:  %d %d %d\n",imgMat.at<Vec3b>(Point(x,y))[0],imgMat.at<Vec3b>(Point(x,y))[1],imgMat.at<Vec3b>(Point(x,y))[2]);
-          i++;
-        }
-      }
-
-      namedWindow( line, WINDOW_AUTOSIZE );
-      imwrite("./mean.jpg",imgMat);
-      imshow( line, imgMat );
-      waitKey(0);
+      */
 
       loops++;
     }
 
+    //Reconstruct Mat
+    int i = 0;
+    for(int y = 0; y<imgMat.rows; y++){
+      for(int x = 0; x<imgMat.cols; x++){
+        int c = meanImg[i];
+        //printf("Before: %d %d %d\n",imgMat.at<Vec3b>(Point(x,y))[0],imgMat.at<Vec3b>(Point(x,y))[1],imgMat.at<Vec3b>(Point(x,y))[2]);
+        imgMat.at<Vec3b>(Point(x,y)) = Vec3b(c,c,c);
+        //printf("After:  %d %d %d\n",imgMat.at<Vec3b>(Point(x,y))[0],imgMat.at<Vec3b>(Point(x,y))[1],imgMat.at<Vec3b>(Point(x,y))[2]);
+        i++;
+      }
+    }
+
     // Free memory
     cudaFree(img);
-    cudaFree(readImg);
+    cudaFree(meanImg);
 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - begin); 
     std::cout << "Total Time: " << duration.count() << " microseconds\n";
 
+    namedWindow( line, WINDOW_AUTOSIZE );
+    imwrite("./mean.jpg",imgMat);
+    imshow( line, imgMat );
+    waitKey(0);
   }
   
   return 0;

@@ -8,7 +8,7 @@
 #include <chrono>
 using namespace cv;
 
-int tol = 60;
+int tol = 30;
 Mat meanImage;
 Mat image;
 int num = 1;
@@ -72,9 +72,9 @@ public:
         	//meanColor = meanColor[i] + (color[i]-meanColor[i])/num;
         	Vec3b color = image.at<Vec3b>(Point(x,y));
         	//printf("before %d\n",color[0]);
-        	//if ((color[2]-color[0])>tol || (color[2]-color[0])<-tol){
-			//	color = interPolat(x,y);
-			//}
+        	if ((color[2]-color[0])>tol || (color[2]-color[0])<-tol){
+				color = interPolat(x,y);
+			}
 			//printf("after %d\n",color[0]);
         	int meanColor = meanImage.at<uchar>(y,x);
         	meanImage.at<uchar>(y,x) = meanColor+(color[0]-meanColor)/num;
@@ -95,8 +95,8 @@ int main( int argc, char** argv )
 	if (myfile.is_open()){
 
 		while ( getline (myfile,line) ){
-			std::cout << line << '\n';
-			std::cout << num << '\n';
+			//std::cout << line << '\n';
+			//std::cout << num << '\n';
 			//Mat image;
 			//Mat fixed;
 			image = imread( line, IMREAD_COLOR );

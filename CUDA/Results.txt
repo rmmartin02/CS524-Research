@@ -2,3 +2,8 @@ Meaning
 CUDA:	80384105
 2T:		109546164
 1T:		174331335
+
+FilterAndMean
+tol = 30 (uses 147MiB and 5% Util)
+1080ti:		201359661 microseconds
+pepe		125200961 microseconds
