@@ -56,21 +56,21 @@ int main(void)
         }
       }
 
-      //auto start = std::chrono::high_resolution_clock::now();
+      auto start = std::chrono::high_resolution_clock::now();
 
-    	int blockSize = 256;
+    	int blockSize = 512;
     	int numBlocks = (N + blockSize - 1) / blockSize;
     	mean<<<numBlocks, blockSize>>>(N, img, meanImg,loops);
 
       // Wait for GPU to finish before accessing on host
       cudaDeviceSynchronize();
-/*
+
       auto stop = std::chrono::high_resolution_clock::now();
       auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start); 
       std::cout << "Time taken by function: " << duration.count() << " microseconds\n";
       avgDur = avgDur + (duration.count()-avgDur)/loops;
       std::cout << "Avg Duration: " << avgDur << " microseconds\n";
-*/
+
       loops++;
     }
 
@@ -99,4 +99,4 @@ int main(void)
   
   return 0;
 }
-//nvcc -o meanImages meanImages.cpp `pkg-config opencv --cflags --libs` -std=c++11
+//nvcc -o multiMean multiMean.cu `pkg-config opencv --cflags --libs` -std=c++11
