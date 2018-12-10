@@ -121,12 +121,13 @@ int main(void)
           i++;
         }
       }
+      printf("%f %f %f",img[N/2],img[N/2+A],img[N/2+A*2]);
 
       auto start = std::chrono::high_resolution_clock::now();
 
     	int blockSize = 512;
     	int numBlocks = (N + blockSize - 1) / blockSize;
-    	mean<<<numBlocks, blockSize>>>(N, S, C, tol, img, readImg);
+    	filter<<<numBlocks, blockSize>>>(N, S, C, tol, img, readImg);
 
       // Wait for GPU to finish before accessing on host
       cudaDeviceSynchronize();
@@ -138,15 +139,18 @@ int main(void)
       std::cout << "Avg Duration: " << avgDur << " microseconds\n";
 
       //Reconstruct Mat
-      int i = 0;
+      i = 0;
       for(int y = 0; y<imgMat.rows; y++){
         for(int x = 0; x<imgMat.cols; x++){
-        int c = readImg[i];
-        imgMat.at<Vec3b>(Point(x,y)) = Vec3b(c,c,c);
-        i++;
+          int c = img[i];
+          printf("Before: %d %d %d\n",imgMat.at<Vec3b>(Point(x,y))[0],imgMat.at<Vec3b>(Point(x,y))[1],imgMat.at<Vec3b>(Point(x,y))[2]);
+          imgMat.at<Vec3b>(Point(x,y)) = Vec3b(c,c,c);
+          printf("After:  %d %d %d\n",imgMat.at<Vec3b>(Point(x,y))[0],imgMat.at<Vec3b>(Point(x,y))[1],imgMat.at<Vec3b>(Point(x,y))[2]);
+          i++;
+        }
       }
 
-         namedWindow( line, WINDOW_AUTOSIZE );
+      namedWindow( line, WINDOW_AUTOSIZE );
       imwrite("./mean.jpg",imgMat);
       imshow( line, imgMat );
       waitKey(0);
@@ -154,7 +158,6 @@ int main(void)
       loops++;
     }
 
-    }
     // Free memory
     cudaFree(img);
     cudaFree(readImg);
@@ -167,4 +170,5 @@ int main(void)
   
   return 0;
 }
+//export PATH=/usr/local/cuda-10.0/bin${PATH:+:${PATH}}
 //nvcc -o multiMean multiMean.cu `pkg-config opencv --cflags --libs` -std=c++11
