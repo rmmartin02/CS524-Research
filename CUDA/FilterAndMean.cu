@@ -171,4 +171,4 @@ int main(void)
   return 0;
 }
 //export PATH=/usr/local/cuda-10.0/bin${PATH:+:${PATH}}
-//nvcc -o multiMean multiMean.cu `pkg-config opencv --cflags --libs` -std=c++11
+//nvcc -o FilterAndMean FilterAndMean.cu `pkg-config opencv --cflags --libs` -std=c++11

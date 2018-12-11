@@ -4,6 +4,9 @@ CUDA:	80384105
 1T:		174331335
 
 FilterAndMean
-tol = 30 (uses 147MiB and 5% Util)
+float and running mean
+tol = 30 (uses 147MiB and 5% Util on 1080ti)
 1080ti:		201359661 microseconds
+970M:		158859467 microseconds
 pepe		125200961 microseconds
+laptop 1T:	234363611 microseconds		

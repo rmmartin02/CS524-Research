@@ -14,7 +14,7 @@ const int A = S*S;
 const int N = A*C;
 const int tol = 30;
 int img [N];
-float meanImg [N];
+unsigned long meanImg [N];
 
 
 void filterMean(int i, int loop)
@@ -75,8 +75,7 @@ void filterMean(int i, int loop)
       }
     }
   }
-  float z = meanImg[i];
-  meanImg[i] = z + (r - z)/((float)loop);
+  meanImg[i] += r;
 }
 
 
@@ -108,7 +107,7 @@ int main( int argc, char** argv )
           img[i+A] = imgMat.at<Vec3b>(Point(x,y))[1];
           img[i+2*A] = imgMat.at<Vec3b>(Point(x,y))[2];
           if(loops==1){
-           meanImg[i] = 0.0f;
+           meanImg[i] = 0;
           }
           i++;
         }
@@ -153,6 +152,10 @@ int main( int argc, char** argv )
       */
 
       loops++;
+    }
+
+    for(int i=0; i<N; i++){
+      meanImg[i]/=loops;
     }
 
     //Reconstruct Mat

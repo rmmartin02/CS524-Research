@@ -5,7 +5,7 @@
 #include <chrono>
 using namespace cv;
 
-int tol = 60;
+int tol = 30;
 
 Vec3b interPolat(Mat image, int x, int y){
 	Vec3b color = image.at<Vec3b>(Point(x,y));
@@ -52,62 +52,70 @@ Vec3b interPolat(Mat image, int x, int y){
 
 int main( int argc, char** argv )
 {
+	auto begin = std::chrono::high_resolution_clock::now();
 	std::string line;
 	std::ifstream myfile ("images.txt");
 	int num = 1;
-	int avgDur = 0;
+	float avgDur = 0;
 	Mat meanImage;
+	Mat image;
 	if (myfile.is_open()){
 		while ( getline (myfile,line) ){
-			std::cout << line << '\n';
-			std::cout << num << '\n';
-			Mat image;
-			Mat fixed;
+			//std::cout << line << '\n';
+			//std::cout << num << '\n';
 			image = imread( line, IMREAD_COLOR );
-			fixed = imread(	line, IMREAD_COLOR );
 			if(!image.data ){
 				printf( " No image data \n " );
 				return -1;
+			}
+			if(num == 1){
+				//create empty matrix
+				meanImage = Mat(image.rows,image.cols,CV_32FC1);
 			}
 			//left, up, width, height
 			//1024x1024
 			//image = image(Rect(256,256,512,512));
 			//fixed = fixed(Rect(256,256,512,512));
-			auto start = std::chrono::high_resolution_clock::now();
-			for(int y=1;y<image.rows-1;y++){
-				for(int x=1;x<image.cols-1;x++){
-					// get pixel
+
+			//auto start = std::chrono::high_resolution_clock::now();
+
+			for(int y=0;y<image.rows;y++){
+				for(int x=0;x<image.cols;x++){
 					Vec3b color = image.at<Vec3b>(Point(x,y));
 					
-					//if ((color[2]-color[0])>tol || (color[2]-color[0])<-tol){
-					//	color = interPolat(image,x,y);
-					//}
-
-					// set pixel
-					//fixed.at<Vec3b>(Point(x,y)) = color;
-					if (num>1){
-						Vec3b meanColor = meanImage.at<Vec3b>(Point(x,y));
-						for(int i=0;i<3;i++){
-							meanColor[i] = meanColor[i] + (color[i]-meanColor[i])/num;
-						}
-						meanImage.at<Vec3b>(Point(x,y)) = meanColor;
-						//meanImage = meanImage+(1/i)*(fixed[:,:]-meanImage)
+					if ((color[2]-color[0])>tol || (color[2]-color[0])<-tol){
+						color = interPolat(image,x,y);
 					}
+					float meanColor = meanImage.at<float>(Point(x,y));
+					meanImage.at<float>(Point(x,y)) = meanColor + ((float)color[0]-meanColor)/(float)num;;
+					//meanImage = meanImage+(1/i)*(fixed[:,:]-meanImage)
 				}
 			}
+			/*
 			auto stop = std::chrono::high_resolution_clock::now();
 			auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start); 
 		    std::cout << "Time taken by function: " << duration.count() << " microseconds\n";
 		    avgDur = avgDur + (duration.count()-avgDur)/num;
 		    std::cout << "Avg Duration: " << avgDur << " microseconds\n";
-			if(num==1){
-				meanImage = fixed;
-			}
+			*/
+			
 			num++;
 		}
+		for(int y = 0; y<meanImage.rows; y++){
+			for(int x=0; x<meanImage.cols; x++){
+				int c = meanImage.at<float>(y,x);
+				image.at<Vec3b>(Point(x,y)) = Vec3b(c,c,c);
+			}
+		}
+
+		auto end = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - begin); 
+		std::cout << "Total Time: " << duration.count() << " microseconds\n";
+
 		myfile.close();
 		namedWindow( line, WINDOW_AUTOSIZE );
-		imshow( line, meanImage );
+		imwrite("./mean.jpg",image);
+		imshow( line, image );
 		waitKey(0);
 	}
 

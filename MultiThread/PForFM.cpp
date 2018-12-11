@@ -76,8 +76,8 @@ public:
 				color = interPolat(x,y);
 			}
 			//printf("after %d\n",color[0]);
-        	int meanColor = meanImage.at<uchar>(y,x);
-        	meanImage.at<uchar>(y,x) = meanColor+(color[0]-meanColor)/num;
+        	int meanColor = meanImage.at<float>(y,x);
+        	meanImage.at<float>(y,x) = meanColor+((float)color[0]-meanColor)/(float)num;
         }
     }
 };
@@ -90,13 +90,13 @@ int main( int argc, char** argv )
 	std::ifstream myfile ("images.txt");
 	setNumThreads(atoi(argv[1]));
 	printf("Num Threads: %d\n",getNumThreads());
-	int avgDur = 0;
+	float avgDur = 0;
 	//Mat meanImage;
 	if (myfile.is_open()){
 
 		while ( getline (myfile,line) ){
-			//std::cout << line << '\n';
-			//std::cout << num << '\n';
+			std::cout << line << '\n';
+			std::cout << num << '\n';
 			//Mat image;
 			//Mat fixed;
 			image = imread( line, IMREAD_COLOR );
@@ -107,35 +107,39 @@ int main( int argc, char** argv )
 			//image = image(Rect(256,256,512,512));
 			if(num == 1){
 				//create empty 8-bit matrix
-				meanImage = Mat(image.rows,image.cols,CV_8U);
+				meanImage = Mat(image.rows,image.cols,CV_32FC1);
 			}
 			//fixed = imread(	line, IMREAD_COLOR );
 			//left, up, width, height
 			//1024x1024
-			//auto start = std::chrono::high_resolution_clock::now();
+			auto start = std::chrono::high_resolution_clock::now();
 		    for (int y=0; y<image.rows; y++) { 
 		     	parallel_for_(cv::Range(0, image.cols), Body(y));
-		    }
-		    //namedWindow( line, WINDOW_AUTOSIZE );
-			//imshow( line, meanImage );
-			//waitKey(0);
-			/*
+		    };
+			
 			auto stop = std::chrono::high_resolution_clock::now();
 			auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start); 
 		    std::cout << "Time taken by function: " << duration.count() << " microseconds\n";
 		    avgDur = avgDur + (duration.count()-avgDur)/num;
 		    std::cout << "Avg Duration: " << avgDur << " microseconds\n";
-		    */
+		    
 			num++;
 		}
+		for(int y = 0; y<meanImage.rows; y++){
+			for(int x=0; x<meanImage.cols; x++){
+				int c = meanImage.at<float>(y,x);
+				image.at<Vec3b>(Point(x,y)) = Vec3b(c,c,c);
+			}
+		}
+			
 		auto end = std::chrono::high_resolution_clock::now();
 		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - begin); 
 		std::cout << "Total Time: " << duration.count() << " microseconds\n";
 
 		myfile.close();
 		namedWindow( line, WINDOW_AUTOSIZE );
-		imwrite("./mean.jpg",meanImage);
-		imshow( line, meanImage );
+		imwrite("./mean.jpg",image);
+		imshow( line, image );
 		waitKey(0);
 	}
 
