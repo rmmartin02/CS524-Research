@@ -94,7 +94,7 @@ int main(void)
   float avgDur = 0.0f;
 
   // Allocate Unified Memory – accessible from CPU or GPU
-  cudaMallocManaged(&img, N*sizeof(float));
+  cout << "img malloc" << cudaMallocManaged(&img, N*sizeof(float)) << endl;
   cudaMallocManaged(&meanImg, N*sizeof(float));
 
   //open images
