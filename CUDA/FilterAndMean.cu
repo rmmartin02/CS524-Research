@@ -158,6 +158,7 @@ int main(void)
     cudaFree(img);
     cudaFree(meanImg);
 
+
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - begin); 
     std::cout << "Total Time: " << duration.count() << " microseconds\n";
