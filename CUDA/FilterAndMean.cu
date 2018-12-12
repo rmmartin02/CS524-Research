@@ -94,7 +94,7 @@ int main(void)
   float avgDur = 0.0f;
 
   // Allocate Unified Memory – accessible from CPU or GPU
-  cudaMallocManaged(&img, N*sizeof(float));
+  cout << "img malloc" << cudaMallocManaged(&img, N*sizeof(float)) << endl;
   cudaMallocManaged(&meanImg, N*sizeof(float));
 
   //open images
@@ -157,6 +157,7 @@ int main(void)
     // Free memory
     cudaFree(img);
     cudaFree(meanImg);
+
 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - begin); 

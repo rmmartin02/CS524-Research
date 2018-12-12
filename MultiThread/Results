@@ -1,4 +1,4 @@
-Machine	Threads	Filter	Size	Avg Time per Image
+Machine	Threads	Filter	Size	Per Image	Total		Util	Mem
 janus	4		Yes		1024	28028
 		2		Yes		1024	
 		1		Yes		1024	47994
@@ -6,3 +6,13 @@ janus	4		Yes		1024	28028
 pepe	4						20800
 		2						25400
 		1						30680
+
+
+
+OpenMP
+laptop	4		Yes		1024	7419		159613365
+laptop	2		Yes		1024	12627		180275647	
+laptop	1		Yes		1024	22048		209869644
+
+
+970M	512		Yes		1024	2196					<10%	48MiB
