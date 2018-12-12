@@ -126,8 +126,8 @@ int main( int argc, char** argv )
       }
       
       auto stop = std::chrono::high_resolution_clock::now();
-      auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start); 
-      std::cout << "Time taken by function: " << duration.count() << " milliseconds\n";
+      auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start); 
+      std::cout << "Time taken by function: " << duration.count() << " microseconds\n";
       avgDur = avgDur + (duration.count()-avgDur)/loops;
       std::cout << "Avg Duration: " << avgDur << " milliseconds\n";
       
